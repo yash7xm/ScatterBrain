@@ -25,6 +25,7 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 type TCPTransportOpts struct {
 	ListenAddr    string
 	HandShakeFunc HandShakeFunc
+	Decoder       Decoder
 }
 
 type TCPTransport struct {
@@ -65,6 +66,8 @@ func (t *TCPTransport) startAcceptLoop() {
 	}
 }
 
+type Temp struct{}
+
 func (t *TCPTransport) handleConn(conn net.Conn) {
 	peer := NewTCPPeer(conn, true)
 
@@ -74,5 +77,12 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 		return
 	}
 
-	fmt.Printf("New incoming connection %+v\n", peer)
+	// Read loop
+	msg := &Temp{}
+	for {
+		if err := t.Decoder.Decode(conn, msg); err != nil {
+			fmt.Printf("TCP error: %s\n", err)
+			continue
+		}
+	}
 }
